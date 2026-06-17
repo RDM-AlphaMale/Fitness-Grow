@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IronLog Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --bg: #0b0b0e;
+  --surface: #13131a;
+  --card: #1a1a24;
+  --border: #252535;
+  --border2: #303048;
+  --ember: #ff4d1c;
+  --ember-dim: #7a2510;
+  --ember-glow: rgba(255,77,28,0.15);
+  --cyan: #00d4ff;
+  --cyan-dim: rgba(0,212,255,0.12);
+  --green: #22c55e;
+  --yellow: #facc15;
+  --red: #ef4444;
+  --chrome: #7878a0;
+  --silver: #b0b0d0;
+  --white: #eeeef8;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══ NAV ═══ */
+nav {
+  position: sticky; top:0; z-index:200;
+  background: rgba(11,11,14,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.06em;
+  color: var(--ember);
+  padding: 0.8rem 1.5rem;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nav-logo span { color: var(--white); }
+
+.nav-tabs {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+}
+.nav-tabs::-webkit-scrollbar { display:none; }
+
+.nav-tab {
+  padding: 0.9rem 1.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chrome);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.nav-tab:hover { color: var(--silver); }
+.nav-tab.active { color: var(--ember); border-bottom-color: var(--ember); }
+
+.nav-clock {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--chrome);
+  padding: 0 1.2rem;
+  border-left: 1px solid var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ═══ PAGES ═══ */
+.page { display:none; padding: 1.5rem 1.8rem; max-width: 1300px; margin: 0 auto; }
+.page.active { display:block; }
+
+/* ═══ TYPOGRAPHY ═══ */
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+.section-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chrome);
+  margin-bottom: 0.5rem;
+}
+
+/* ═══ CARDS ═══ */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.3rem 1.5rem;
+}
+
+/* ═══ GRID HELPERS ═══ */
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+
+/* ═══════════════════════════════════════
+   PAGE 1 — GRABAR
+═══════════════════════════════════════ */
+#page-record .record-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 1.5rem;
+}
+
+/* MIC */
+.mic-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 1.5rem;
+}
+.mic-wrap {
+  position: relative;
+  width: 150px; height: 150px;
+  margin-bottom: 1.5rem;
+}
+.mic-pulse {
+  position: absolute; inset: -12px;
+  border-radius: 50%;
+  border: 2px solid var(--ember);
+  opacity: 0;
+}
+.mic-pulse.on { animation: ripple 1.3s ease-out infinite; }
+@keyframes ripple {
+  0%   { transform:scale(0.9); opacity:0.8; }
+  100% { transform:scale(1.5); opacity:0; }
+}
+.mic-btn {
+  width: 150px; height: 150px;
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 40% 38%, #232330, #17171f);
+  box-shadow: 0 0 0 3px var(--border2), 0 10px 50px rgba(0,0,0,0.7);
+  cursor: pointer;
+  display: flex; align-items:center; justify-content:center;
+  transition: transform 0.15s, box-shadow 0.2s;
+  position: relative; z-index:2;
+}
+.mic-btn:hover { transform: scale(1.04); }
+.mic-btn.on {
+  background: radial-gradient(circle at 40% 38%, #5a1a0a, #3a0e05);
+  box-shadow: 0 0 0 3px var(--ember), 0 0 60px rgba(255,77,28,0.35), 0 10px 50px rgba(0,0,0,0.7);
+  animation: pulseBg 1.1s ease-in-out infinite alternate;
+}
+@keyframes pulseBg {
+  from { box-shadow: 0 0 0 3px var(--ember), 0 0 30px var(--ember-glow); }
+  to   { box-shadow: 0 0 0 3px var(--ember), 0 0 80px rgba(255,77,28,0.5); }
+}
+.mic-svg { width:52px; height:52px; fill:var(--chrome); transition:fill 0.3s; }
+.mic-btn.on .mic-svg { fill:var(--ember); }
+.mic-label { font-size:0.82rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--chrome); margin-bottom:0.4rem; }
+.mic-status { font-family:var(--font-mono); font-size:0.72rem; color:var(--ember); min-height:1rem; }
+
+.transcript-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius:10px;
+  padding: 1.1rem 1.3rem;
+  min-height: 80px;
+  font-size:0.92rem;
+  line-height:1.6;
+  color:var(--white);
+  position: relative;
+  margin-bottom: 1rem;
+}
+.transcript-box::before {
+  content:'TRANSCRIPCIÓN';
+  position:absolute; top:-0.55rem; left:1rem;
+  background:var(--surface); padding:0 0.5rem;
+  font-size:0.62rem; font-weight:600; letter-spacing:0.14em; color:var(--chrome);
+}
+
+.ai-spin {
+  display:none; align-items:center; gap:0.6rem;
+  font-size:0.78rem; font-family:var(--font-mono); color:var(--chrome);
+  margin-bottom:0.8rem;
+}
+.ai-spin.on { display:flex; }
+.dots span {
+  display:inline-block; width:5px; height:5px; border-radius:50%;
+  background:var(--ember); animation:dot 1.2s infinite; margin:0 1px;
+}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot {
+  0%,80%,100%{opacity:.2;transform:scale(.8)}
+  40%{opacity:1;transform:scale(1.2)}
+}
+
+.parsed-box {
+  background: var(--surface);
+  border:1px solid var(--ember-dim);
+  border-radius:10px;
+  padding:1.1rem 1.3rem;
+  margin-bottom:1rem;
+  display:none;
+  position:relative;
+}
+.parsed-box::before {
+  content:'DETECTADO POR IA';
+  position:absolute;top:-0.55rem;left:1rem;
+  background:var(--surface);padding:0 0.5rem;
+  font-size:0.62rem;font-weight:600;letter-spacing:0.14em;color:var(--ember);
+}
+.parsed-summary { font-size:0.85rem; color:var(--silver); margin-bottom:0.6rem; }
+.parsed-tags { display:flex;flex-wrap:wrap;gap:0.4rem; }
+.ptag {
+  background:rgba(255,77,28,0.1); border:1px solid rgba(255,77,28,0.3);
+  border-radius:6px; padding:0.25rem 0.65rem;
+  font-family:var(--font-mono); font-size:0.72rem; color:#ff7a52;
+}
+
+.btn-primary {
+  width:100%; background:var(--ember); border:none; border-radius:10px;
+  padding:0.85rem; font-family:var(--font-display); font-size:1.1rem;
+  letter-spacing:0.1em; color:#fff; cursor:pointer;
+  box-shadow:0 4px 24px rgba(255,77,28,0.3);
+  transition:background .2s, box-shadow .2s, transform .1s;
+  display:none;
+}
+.btn-primary:hover { background:#ff6a3d; box-shadow:0 4px 35px rgba(255,77,28,0.5); }
+.btn-primary:active { transform:scale(0.98); }
+
+/* BITÁCORA SIDEBAR */
+.log-side { display:flex; flex-direction:column; gap:0; }
+.log-side-head {
+  background:var(--card); border:1px solid var(--border); border-radius:12px 12px 0 0;
+  padding:1rem 1.3rem; display:flex; align-items:center; justify-content:space-between;
+}
+.log-side-title { font-family:var(--font-display); font-size:1.1rem; letter-spacing:0.07em; }
+.badge {
+  background:var(--border2); border-radius:20px; padding:0.15rem 0.6rem;
+  font-family:var(--font-mono); font-size:0.7rem; color:var(--chrome);
+}
+.log-side-actions {
+  background:var(--card); border:1px solid var(--border); border-top:none;
+  padding:0.65rem 1.3rem; display:flex; gap:0.5rem;
+}
+.btn-ghost {
+  flex:1; padding:0.4rem 0.5rem; border:1px solid var(--border2); border-radius:7px;
+  background:transparent; color:var(--chrome); font-size:0.7rem; font-weight:600;
+  letter-spacing:0.07em; text-transform:uppercase; cursor:pointer;
+  transition:border-color .2s, color .2s, background .2s;
+}
+.btn-ghost:hover { border-color:var(--ember); color:var(--ember); background:var(--ember-glow); }
+
+.log-entries-wrap {
+  background:var(--card); border:1px solid var(--border); border-top:none;
+  border-radius:0 0 12px 12px; max-height: 520px; overflow-y:auto;
+  padding:0.8rem 1rem;
+  display:flex; flex-direction:column; gap:0.6rem;
+}
+.log-entries-wrap::-webkit-scrollbar { width:3px; }
+.log-entries-wrap::-webkit-scrollbar-thumb { background:var(--border2); border-radius:4px; }
+
+.log-entry {
+  background:var(--surface); border:1px solid var(--border);
+  border-left:3px solid var(--ember-dim);
+  border-radius:0 8px 8px 0; padding:0.8rem 1rem;
+  position:relative; transition:border-left-color .2s;
+  animation:slideIn .3s ease-out;
+}
+@keyframes slideIn {
+  from{opacity:0;transform:translateX(16px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.log-entry:hover { border-left-color:var(--ember); }
+.entry-time { font-family:var(--font-mono); font-size:0.65rem; color:var(--chrome); margin-bottom:0.3rem; }
+.entry-text { font-size:0.82rem; line-height:1.5; color:var(--silver); margin-bottom:0.4rem; }
+.entry-tags { display:flex; flex-wrap:wrap; gap:0.3rem; }
+.entry-tag {
+  background:rgba(255,77,28,0.08); border:1px solid rgba(255,77,28,0.25);
+  border-radius:4px; padding:0.12rem 0.45rem;
+  font-family:var(--font-mono); font-size:0.64rem; color:#ff7a52;
+}
+.del-btn {
+  position:absolute; top:0.45rem; right:0.5rem;
+  background:transparent; border:none; color:var(--border2);
+  font-size:0.85rem; cursor:pointer; transition:color .2s;
+}
+.del-btn:hover { color:#ef4444; }
+
+.empty-log {
+  text-align:center; padding:2.5rem 1rem;
+  color:var(--chrome); font-size:0.85rem; line-height:1.8;
+}
+.empty-log-icon { font-size:2.2rem; display:block; margin-bottom:0.6rem; opacity:0.35; }
+
+/* ═══════════════════════════════════════
+   PAGE 2 — PERFIL
+═══════════════════════════════════════ */
+.profile-layout { display:grid; grid-template-columns:340px 1fr; gap:1.5rem; }
+
+.imc-display {
+  text-align:center;
+  padding: 1.5rem 1rem;
+}
+.imc-ring-wrap {
+  position:relative; width:160px; height:160px; margin:0 auto 1.2rem;
+}
+.imc-ring-svg { width:100%; height:100%; transform:rotate(-90deg); }
+.imc-ring-bg { fill:none; stroke:var(--border2); stroke-width:10; }
+.imc-ring-fg { fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset .8s ease, stroke .4s; }
+.imc-center {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.imc-value { font-family:var(--font-display); font-size:2.4rem; line-height:1; }
+.imc-unit { font-size:0.7rem; color:var(--chrome); letter-spacing:0.1em; margin-top:0.2rem; }
+.imc-label-text { font-size:0.8rem; font-weight:600; margin-top:0.5rem; }
+
+.profile-form { display:flex; flex-direction:column; gap:0.9rem; }
+.field-group { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+.field { display:flex; flex-direction:column; gap:0.35rem; }
+.field label { font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--chrome); }
+.field input, .field select {
+  background:var(--surface); border:1px solid var(--border2); border-radius:8px;
+  padding:0.65rem 0.9rem; color:var(--white); font-family:var(--font-body); font-size:0.9rem;
+  outline:none; transition:border-color .2s;
+}
+.field input:focus, .field select:focus { border-color:var(--ember); }
+.field input::placeholder { color:var(--chrome); }
+.field select option { background:var(--card); }
+
+.save-profile-btn {
+  background:var(--ember); border:none; border-radius:9px;
+  padding:0.75rem 1.5rem; font-family:var(--font-display);
+  font-size:1rem; letter-spacing:0.1em; color:#fff; cursor:pointer;
+  box-shadow:0 4px 20px rgba(255,77,28,0.3); transition:background .2s;
+}
+.save-profile-btn:hover { background:#ff6a3d; }
+
+.bmi-history { margin-top:0; }
+.bmi-entry {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0.6rem 0; border-bottom:1px solid var(--border);
+  font-size:0.82rem;
+}
+.bmi-entry:last-child { border-bottom:none; }
+.bmi-date { color:var(--chrome); font-family:var(--font-mono); font-size:0.7rem; }
+.bmi-vals { display:flex; gap:1.2rem; }
+.bmi-val-item { text-align:right; }
+.bmi-val-num { font-family:var(--font-mono); font-weight:600; }
+.bmi-val-lbl { font-size:0.64rem; color:var(--chrome); }
+.bmi-badge {
+  padding:0.15rem 0.55rem; border-radius:20px;
+  font-size:0.65rem; font-weight:700; letter-spacing:0.06em;
+}
+
+/* ═══════════════════════════════════════
+   PAGE 3 — PROGRESO
+═══════════════════════════════════════ */
+.progress-layout { display:flex; flex-direction:column; gap:1.5rem; }
+
+.analysis-banner {
+  border-radius:12px; padding:1.2rem 1.5rem;
+  display:flex; align-items:flex-start; gap:1.2rem;
+  border:1px solid var(--border);
+}
+.analysis-icon { font-size:2rem; flex-shrink:0; }
+.analysis-content h3 { font-family:var(--font-display); font-size:1.2rem; letter-spacing:0.06em; margin-bottom:0.4rem; }
+.analysis-content p { font-size:0.85rem; line-height:1.6; color:var(--silver); }
+
+.exercise-selector {
+  display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;
+}
+.ex-chip {
+  padding:0.35rem 0.9rem; border:1px solid var(--border2); border-radius:20px;
+  background:transparent; color:var(--chrome); font-size:0.75rem; font-weight:600;
+  cursor:pointer; transition:all .2s; white-space:nowrap;
+}
+.ex-chip:hover { border-color:var(--ember); color:var(--ember); }
+.ex-chip.active { background:var(--ember); border-color:var(--ember); color:#fff; }
+
+.chart-card {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:1.3rem 1.5rem;
+}
+.chart-card-head {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem;
+}
+.chart-card-title { font-family:var(--font-display); font-size:1.1rem; letter-spacing:0.07em; }
+.chart-period {
+  display:flex; gap:0.3rem;
+}
+.period-btn {
+  padding:0.25rem 0.65rem; border:1px solid var(--border2); border-radius:6px;
+  background:transparent; color:var(--chrome); font-size:0.7rem; font-weight:600;
+  cursor:pointer; transition:all .2s;
+}
+.period-btn:hover,.period-btn.active { background:var(--ember); border-color:var(--ember); color:#fff; }
+
+.chart-wrap { position:relative; height:260px; }
+
+/* PROGRESS STATS */
+.progress-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+.pstat {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:1rem 1.1rem; text-align:center;
+}
+.pstat-val { font-family:var(--font-display); font-size:1.8rem; line-height:1; margin-bottom:0.3rem; }
+.pstat-lbl { font-size:0.68rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--chrome); }
+
+/* ═══════════════════════════════════════
+   PAGE 4 — GRÁFICOS CORPORALES
+═══════════════════════════════════════ */
+.body-layout { display:flex; flex-direction:column; gap:1.5rem; }
+
+/* ═══ TOAST ═══ */
+.toast {
+  position:fixed; bottom:1.8rem; left:50%; z-index:500;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--ember); color:#fff; padding:0.65rem 1.3rem;
+  border-radius:8px; font-size:0.82rem; font-weight:600;
+  letter-spacing:0.05em; transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  #page-record .record-layout { grid-template-columns:1fr; }
+  .profile-layout { grid-template-columns:1fr; }
+  .grid4,.progress-stats { grid-template-columns:repeat(2,1fr); }
+  .grid3 { grid-template-columns:1fr 1fr; }
+  .grid2 { grid-template-columns:1fr; }
+  .page { padding:1rem; }
+}
+@media(max-width:600px){
+  .progress-stats,.grid4 { grid-template-columns:1fr 1fr; }
+  .nav-logo { font-size:1.3rem; padding:0.7rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-logo">Iron<span>Log</span> <span style="color:var(--chrome);font-size:0.8rem;letter-spacing:0.2em">PRO</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('record',this)">🎙 Grabar</button>
+    <button class="nav-tab" onclick="showPage('progress',this)">📈 Progreso</button>
+    <button class="nav-tab" onclick="showPage('body',this)">⚖ Cuerpo</button>
+    <button class="nav-tab" onclick="showPage('profile',this)">👤 Perfil</button>
+  </div>
+  <div class="nav-clock" id="navClock"></div>
+</nav>
+
+<!-- ══════════════════════════════════════
+  PAGE — GRABAR
+══════════════════════════════════════ -->
+<div id="page-record" class="page active">
+  <!-- STATS STRIP -->
+  <div class="grid4" style="margin-bottom:1.5rem">
+    <div class="pstat">
+      <div class="pstat-val" id="s-sessions">0</div>
+      <div class="pstat-lbl">Sesiones</div>
+    </div>
+    <div class="pstat">
+      <div class="pstat-val" id="s-today">0</div>
+      <div class="pstat-lbl">Hoy</div>
+    </div>
+    <div class="pstat">
+      <div class="pstat-val" id="s-streak">0</div>
+      <div class="pstat-lbl">Días streak</div>
+    </div>
+    <div class="pstat">
+      <div class="pstat-val" id="s-exercises">0</div>
+      <div class="pstat-lbl">Ejercicios</div>
+    </div>
+  </div>
+
+  <div class="record-layout">
+    <!-- LEFT: MIC + TRANSCRIPT -->
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="mic-hero">
+          <div class="mic-wrap">
+            <div class="mic-pulse" id="micPulse"></div>
+            <button class="mic-btn" id="micBtn" aria-label="Grabar entrenamiento por voz" type="button">
+              <svg class="mic-svg" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 17.93A8.001 8.001 0 0 1 4 11H2a10 10 0 0 0 9 9.95V23h2v-2.07A10 10 0 0 0 22 11h-2a8 8 0 0 1-7 7.93z"/></svg>
+            </button>
+          </div>
+          <div class="mic-label" id="micLabel">Toca para grabar</div>
+          <div class="mic-status" id="micStatus"></div>
+        </div>
+
+        <div class="transcript-box" id="transcriptBox">
+          <span id="transcriptPh" style="color:var(--chrome);font-style:italic;font-size:0.85rem">
+            Di algo como: <em>"Press de banca 80 kilos, 3 series de 5 reps"</em>
+          </span>
+          <span id="transcriptTxt" style="display:none"></span>
+        </div>
+
+        <div class="ai-spin" id="aiSpin">
+          <span>IA analizando</span>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="parsed-box" id="parsedBox">
+          <div class="parsed-summary" id="parsedSummary"></div>
+          <div class="parsed-tags" id="parsedTags"></div>
+        </div>
+
+        <button class="btn-primary" id="saveBtn" type="button">💾 &nbsp;Guardar en Bitácora</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: LOG -->
+    <div class="log-side">
+      <div class="log-side-head">
+        <div class="log-side-title">📋 Bitácora</div>
+        <div class="badge" id="logBadge">0</div>
+      </div>
+      <div class="log-side-actions">
+        <button class="btn-ghost" id="exportBtn" type="button">⬇ Exportar</button>
+        <button class="btn-ghost" id="clearBtn" type="button">🗑 Limpiar</button>
+      </div>
+      <div class="log-entries-wrap" id="logEntries">
+        <div class="empty-log">
+          <span class="empty-log-icon">🏋️</span>
+          Aún no hay registros.<br>Graba tu primer sesión.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  PAGE — PROGRESO
+══════════════════════════════════════ -->
+<div id="page-progress" class="page">
+  <!-- ANÁLISIS IA -->
+  <div class="analysis-banner" id="analysisBanner" style="background:var(--card);margin-bottom:1.5rem">
+    <div class="analysis-icon" id="analysisIcon">📊</div>
+    <div class="analysis-content">
+      <h3 id="analysisTitle">Sin datos suficientes</h3>
+      <p id="analysisText">Registra al menos 3 sesiones con el mismo ejercicio para ver el análisis de progreso.</p>
+    </div>
+  </div>
+
+  <!-- SELECTOR EJERCICIO -->
+  <div class="chart-card" style="margin-bottom:1.5rem">
+    <div class="chart-card-head">
+      <div class="chart-card-title">💪 Evolución por Ejercicio</div>
+      <div class="chart-period">
+        <button class="period-btn active" onclick="setPeriod(30,this)">30d</button>
+        <button class="period-btn" onclick="setPeriod(90,this)">90d</button>
+        <button class="period-btn" onclick="setPeriod(365,this)">1a</button>
+        <button class="period-btn" onclick="setPeriod(0,this)">Todo</button>
+      </div>
+    </div>
+    <div class="exercise-selector" id="exSelector">
+      <span style="font-size:0.8rem;color:var(--chrome)">Sin ejercicios registrados aún.</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="strengthChart"></canvas>
+    </div>
+  </div>
+
+  <!-- STATS DE PROGRESO -->
+  <div class="progress-stats" id="progressStats">
+    <div class="pstat">
+      <div class="pstat-val" id="ps-max" style="color:var(--ember)">—</div>
+      <div class="pstat-lbl">Máximo kg</div>
+    </div>
+    <div class="pstat">
+      <div class="pstat-val" id="ps-first">—</div>
+      <div class="pstat-lbl">Peso inicial</div>
+    </div>
+    <div class="pstat">
+      <div class="pstat-val" id="ps-delta" style="color:var(--green)">—</div>
+      <div class="pstat-lbl">Incremento</div>
+    </div>
+    <div class="pstat">
+      <div class="pstat-val" id="ps-sessions">—</div>
+      <div class="pstat-lbl">Sesiones</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  PAGE — CUERPO
+══════════════════════════════════════ -->
+<div id="page-body" class="page">
+  <div class="body-layout">
+    <!-- IMC CHART -->
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div class="chart-card-title">⚖ Evolución del Peso</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+    <!-- PESO + IMC CHART -->
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div class="chart-card-title">📐 Evolución del IMC</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="imcChart"></canvas>
+      </div>
+    </div>
+    <!-- HISTORIAL MEDIDAS -->
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div class="chart-card-title">📋 Historial de Medidas</div>
+      </div>
+      <div id="bmiHistory" style="max-height:280px;overflow-y:auto">
+        <div style="text-align:center;padding:2rem;color:var(--chrome);font-size:0.85rem">
+          Sin registros aún. Ve a <strong>Perfil</strong> para añadir tus datos.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  PAGE — PERFIL
+══════════════════════════════════════ -->
+<div id="page-profile" class="page">
+  <div class="profile-layout">
+    <!-- IMC DISPLAY -->
+    <div class="card">
+      <div class="section-label">Tu IMC actual</div>
+      <div class="imc-display">
+        <div class="imc-ring-wrap">
+          <svg class="imc-ring-svg" viewBox="0 0 120 120">
+            <circle class="imc-ring-bg" cx="60" cy="60" r="50"/>
+            <circle class="imc-ring-fg" id="imcRingFg" cx="60" cy="60" r="50"
+              stroke-dasharray="314" stroke-dashoffset="314" stroke="var(--ember)"/>
+          </svg>
+          <div class="imc-center">
+            <div class="imc-value" id="imcValue" style="color:var(--ember)">—</div>
+            <div class="imc-unit">IMC</div>
+          </div>
+        </div>
+        <div class="imc-label-text" id="imcCategory" style="color:var(--chrome)">Completa tu perfil</div>
+        <div style="margin-top:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; text-align:left;">
+          <div class="card" style="padding:0.8rem">
+            <div style="font-size:0.65rem;color:var(--chrome);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem">Peso</div>
+            <div id="profileWeightDisplay" style="font-family:var(--font-display);font-size:1.5rem;color:var(--white)">—</div>
+            <div style="font-size:0.7rem;color:var(--chrome)">kg</div>
+          </div>
+          <div class="card" style="padding:0.8rem">
+            <div style="font-size:0.65rem;color:var(--chrome);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem">Talla</div>
+            <div id="profileHeightDisplay" style="font-family:var(--font-display);font-size:1.5rem;color:var(--white)">—</div>
+            <div style="font-size:0.7rem;color:var(--chrome)">cm</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA IMC REFERENCIA -->
+      <div style="margin-top:1rem">
+        <div class="section-label">Tabla de referencia IMC</div>
+        <div style="display:flex;flex-direction:column;gap:0.3rem;margin-top:0.5rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.7rem;border-radius:6px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2)">
+            <span style="font-size:0.78rem;color:var(--cyan)">Bajo peso</span>
+            <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--cyan)">&lt; 18.5</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.7rem;border-radius:6px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2)">
+            <span style="font-size:0.78rem;color:var(--green)">Normal</span>
+            <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--green)">18.5 – 24.9</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.7rem;border-radius:6px;background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.2)">
+            <span style="font-size:0.78rem;color:var(--yellow)">Sobrepeso</span>
+            <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--yellow)">25 – 29.9</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.7rem;border-radius:6px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2)">
+            <span style="font-size:0.78rem;color:var(--red)">Obesidad</span>
+            <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--red)">&gt; 30</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="card">
+      <div class="section-title" style="margin-bottom:1.3rem">Mis datos</div>
+      <div class="profile-form" id="profileForm">
+        <div class="field-group">
+          <div class="field">
+            <label>Nombre</label>
+            <input type="text" id="pf-name" placeholder="Tu nombre" autocomplete="name">
+          </div>
+          <div class="field">
+            <label>Fecha de nacimiento</label>
+            <input type="date" id="pf-birth" autocomplete="bday">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Peso actual (kg)</label>
+            <input type="number" id="pf-weight" placeholder="75" step="0.1" min="1" max="400" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label>Talla (cm)</label>
+            <input type="number" id="pf-height" placeholder="175" step="1" min="1" max="280" inputmode="numeric">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Sexo</label>
+            <select id="pf-sex">
+              <option value="">Seleccionar</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Objetivo</label>
+            <select id="pf-goal">
+              <option value="">Seleccionar</option>
+              <option value="strength">Ganar fuerza</option>
+              <option value="muscle">Ganar músculo</option>
+              <option value="loss">Perder peso</option>
+              <option value="maintain">Mantener</option>
+            </select>
+          </div>
+        </div>
+        <button class="save-profile-btn" onclick="saveProfile()">Guardar & Actualizar IMC</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+const SK = {
+  entries: 'ironlog_entries_v2',
+  profile: 'ironlog_profile_v2',
+  bmiHistory: 'ironlog_bmi_v2'
+};
+
+let entries = [];
+let profile = {};
+let bmiHistory = [];
+
+let recognition = null;
+let isRecording = false;
+let currentTranscript = '';
+let currentParsed = null;
+
+let strengthChart = null;
+let weightChart = null;
+let imcChart = null;
+let selectedExercise = null;
+let currentPeriod = 30;
+
+// ════════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════════
+const storageAvailable = typeof window.storage !== 'undefined' && window.storage !== null;
+
+async function load() {
+  if(!storageAvailable) {
+    console.warn('window.storage no disponible — los datos no persistirán entre sesiones.');
+    entries=[]; profile={}; bmiHistory=[];
+    return;
+  }
+  try {
+    const [e, p, b] = await Promise.all([
+      window.storage.get(SK.entries).catch(()=>null),
+      window.storage.get(SK.profile).catch(()=>null),
+      window.storage.get(SK.bmiHistory).catch(()=>null)
+    ]);
+    entries     = e ? JSON.parse(e.value) : [];
+    profile     = p ? JSON.parse(p.value) : {};
+    bmiHistory  = b ? JSON.parse(b.value) : [];
+  } catch(err) {
+    console.error('Error cargando datos:', err);
+    entries=[]; profile={}; bmiHistory=[];
+  }
+}
+
+async function persist(key, val) {
+  if(!storageAvailable) return;
+  try { await window.storage.set(key, JSON.stringify(val)); }
+  catch(e){ console.error('Error guardando datos:', e); toast('⚠ No se pudo guardar'); }
+}
+
+// ════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════
+let activePage = 'record';
+
+function showPage(id, tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if(tab) tab.classList.add('active');
+  activePage = id;
+  if(id==='progress') { buildStrengthChart(); refreshAnalysis(); }
+  if(id==='body')     { buildBodyCharts(); renderBmiHistory(); }
+  if(id==='profile')  { loadProfileForm(); }
+}
+
+// ════════════════════════════════════════════
+//  CLOCK
+// ════════════════════════════════════════════
+function tickClock() {
+  const n = new Date();
+  document.getElementById('navClock').textContent =
+    n.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}) +
+    ' · ' + n.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ════════════════════════════════════════════
+//  SPEECH
+// ════════════════════════════════════════════
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let micPermission = null; // 'granted' | 'denied' | null
+
+// Pre-request mic permission so mobile doesn't block
+async function requestMicPermission() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop()); // release immediately
+    micPermission = 'granted';
+    return true;
+  } catch(err) {
+    micPermission = 'denied';
+    setMicStatus('Permiso de micrófono denegado. Actívalo en ajustes del navegador.');
+    return false;
+  }
+}
+
+function createRecognition() {
+  // Always create a fresh instance — mobile Chrome reuses stale state otherwise
+  if(!SR) return null;
+  const r = new SR();
+  r.lang = 'es-ES';
+  r.interimResults = true;
+  r.continuous = false;
+  r.maxAlternatives = 1;
+
+  r.onstart = () => { isRecording = true; setMicUI(true); };
+
+  r.onresult = e => {
+    let final = '', interim = '';
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) final += t; else interim += t;
+    }
+    showTranscript(final || interim);
+    if(final) currentTranscript = final.trim();
+  };
+
+  r.onerror = e => {
+    isRecording = false;
+    setMicUI(false);
+    recognition = null; // force fresh instance next time
+    if(e.error === 'not-allowed' || e.error === 'permission-denied') {
+      micPermission = 'denied';
+      setMicStatus('Permiso denegado. Activa el micrófono en ajustes del navegador.');
+    } else if(e.error === 'no-speech') {
+      setMicStatus('No se detectó voz. Intenta de nuevo.');
+    } else if(e.error === 'network') {
+      setMicStatus('Error de red. Revisa tu conexión.');
+    } else {
+      setMicStatus('Error: ' + e.error + '. Toca para reintentar.');
+    }
+  };
+
+  r.onend = () => {
+    isRecording = false;
+    setMicUI(false);
+    recognition = null; // always discard — create fresh next time
+    if(currentTranscript) analyzeVoice(currentTranscript);
+  };
+
+  return r;
+}
+
+async function toggleMic() {
+  // Stop if already recording
+  if(isRecording) {
+    if(recognition) { try { recognition.stop(); } catch(e){} }
+    isRecording = false;
+    setMicUI(false);
+    return;
+  }
+
+  // Check speech API support
+  if(!SR) { setMicStatus('Reconocimiento de voz no disponible en este navegador.'); return; }
+
+  // Request permission if not yet granted
+  if(micPermission !== 'granted') {
+    setMicStatus('Solicitando permiso de micrófono...');
+    const ok = await requestMicPermission();
+    if(!ok) return;
+    setMicStatus('');
+  }
+
+  // Reset state
+  currentTranscript = ''; currentParsed = null;
+  showTranscript('');
+  document.getElementById('parsedBox').style.display = 'none';
+  document.getElementById('saveBtn').style.display = 'none';
+
+  // Create fresh recognition instance and start
+  recognition = createRecognition();
+  if(!recognition) { setMicStatus('No se pudo inicializar el reconocimiento.'); return; }
+
+  try {
+    recognition.start();
+  } catch(err) {
+    // InvalidStateError or similar — discard and report
+    recognition = null;
+    isRecording = false;
+    setMicUI(false);
+    setMicStatus('Error al iniciar. Toca de nuevo.');
+  }
+}
+
+function setMicUI(on) {
+  isRecording=on;
+  document.getElementById('micBtn').classList.toggle('on',on);
+  document.getElementById('micPulse').classList.toggle('on',on);
+  document.getElementById('micLabel').textContent = on ? 'Escuchando...' : 'Toca para grabar';
+  document.getElementById('micStatus').textContent = on ? '● REC' : '';
+}
+function setMicStatus(t){ document.getElementById('micStatus').textContent=t; }
+
+function showTranscript(t) {
+  const ph=document.getElementById('transcriptPh');
+  const tx=document.getElementById('transcriptTxt');
+  if(t){ ph.style.display='none'; tx.style.display='inline'; tx.textContent=t; }
+  else  { ph.style.display='inline'; tx.style.display='none'; }
+}
+
+// ════════════════════════════════════════════
+//  AI ANALYSIS
+// ════════════════════════════════════════════
+async function analyzeVoice(transcript) {
+  const spin=document.getElementById('aiSpin');
+  const box=document.getElementById('parsedBox');
+  const saveBtn=document.getElementById('saveBtn');
+  spin.classList.add('on');
+  box.style.display='none'; saveBtn.style.display='none';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:1000,
+        system:`Eres un asistente de fitness. Extrae ejercicios del texto en español.
+Responde SOLO con JSON válido sin texto extra, sin backticks.
+Formato:
+{"ejercicios":[{"nombre":"string","peso_kg":number|null,"series":number|null,"reps":number|null}],"resumen":"string breve"}
+nombre: nombre del ejercicio normalizado (Press banca, Sentadilla, etc). Nunca dejes nombre vacío o null; si no se reconoce, usa "Ejercicio".
+peso_kg: número en kg. Si dice libras convierte (1 lb = 0.453592 kg). Si no menciona peso pon null.
+series y reps: número o null.`,
+        messages:[{role:'user',content:transcript}]
+      })
+    });
+
+    if(!res.ok) throw new Error('API respondió ' + res.status);
+
+    const data = await res.json();
+    const raw = (data.content||[]).map(b=>b.text||'').join('');
+    if(!raw.trim()) throw new Error('Respuesta vacía');
+
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    // Sanitize: ensure shape is always valid even if AI omits fields
+    if(!Array.isArray(parsed.ejercicios)) parsed.ejercicios = [];
+    parsed.ejercicios = parsed.ejercicios
+      .filter(e => e && typeof e === 'object')
+      .map(e => ({
+        nombre: (e.nombre && String(e.nombre).trim()) || 'Ejercicio',
+        peso_kg: (typeof e.peso_kg === 'number' && isFinite(e.peso_kg)) ? e.peso_kg : null,
+        series: (typeof e.series === 'number' && isFinite(e.series)) ? e.series : null,
+        reps: (typeof e.reps === 'number' && isFinite(e.reps)) ? e.reps : null
+      }));
+    parsed.resumen = (parsed.resumen && String(parsed.resumen).trim()) || transcript;
+
+    currentParsed = parsed;
+  } catch(err) {
+    console.warn('IA no disponible, usando fallback de transcripción simple:', err);
+    // Fallback: try a lightweight local parse so the app remains usable offline
+    currentParsed = localFallbackParse(transcript);
+  }
+
+  spin.classList.remove('on');
+  renderParsed(currentParsed);
+  box.style.display='block';
+  saveBtn.style.display='block';
+}
+
+// Lightweight local parser used when the AI call fails (offline, CORS, rate-limit, etc).
+// Looks for patterns like "<nombre> <numero> kg/kilos" and "<numero> series de <numero>".
+function localFallbackParse(transcript) {
+  const text = String(transcript || '').trim();
+  const result = { resumen: text, ejercicios: [] };
+  if(!text) return result;
+
+  const weightMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(kg|kilos?|libras?|lbs?)/i);
+  const seriesMatch = text.match(/(\d+)\s*(?:series|sets)/i);
+  const repsMatch = text.match(/(\d+)\s*(?:rep|repeticiones)/i);
+
+  let peso_kg = null;
+  if(weightMatch) {
+    let n = parseFloat(weightMatch[1].replace(',', '.'));
+    if(/libra|lbs?/i.test(weightMatch[2])) n = +(n * 0.453592).toFixed(1);
+    peso_kg = n;
+  }
+
+  result.ejercicios.push({
+    nombre: text.split(/\d/)[0].trim() || 'Ejercicio',
+    peso_kg,
+    series: seriesMatch ? parseInt(seriesMatch[1], 10) : null,
+    reps: repsMatch ? parseInt(repsMatch[1], 10) : null
+  });
+  return result;
+}
+
+// HTML-escape helper to prevent injection from voice transcripts / AI output
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+
+function renderParsed(p) {
+  document.getElementById('parsedSummary').textContent = p.resumen || '';
+  const tags = document.getElementById('parsedTags');
+  tags.innerHTML = '';
+  (p.ejercicios||[]).forEach(e => {
+    const parts=[e.nombre];
+    if(e.peso_kg!=null) parts.push(`⚖ ${e.peso_kg}kg`);
+    if(e.series!=null)  parts.push(`${e.series}×${e.reps||'?'}`);
+    const d=document.createElement('div');
+    d.className='ptag';
+    d.textContent=parts.join(' · '); // textContent — safe from HTML injection
+    tags.appendChild(d);
+  });
+}
+
+// ════════════════════════════════════════════
+//  SAVE ENTRY
+// ════════════════════════════════════════════
+function saveEntry() {
+  if(!currentTranscript) return;
+  const entry = {
+    id: Date.now(),
+    ts: Date.now(),
+    transcript: currentTranscript,
+    parsed: currentParsed
+  };
+  entries.unshift(entry);
+  persist(SK.entries, entries);
+  renderLog(); updateStats();
+  toast('✅ Guardado en bitácora');
+  currentTranscript=''; currentParsed=null;
+  showTranscript('');
+  document.getElementById('parsedBox').style.display='none';
+  document.getElementById('saveBtn').style.display='none';
+}
+
+// ════════════════════════════════════════════
+//  LOG RENDER
+// ════════════════════════════════════════════
+function renderLog() {
+  const wrap=document.getElementById('logEntries');
+  document.getElementById('logBadge').textContent=entries.length;
+  if(!entries.length){
+    wrap.innerHTML=`<div class="empty-log"><span class="empty-log-icon">🏋️</span>Aún no hay registros.<br>Graba tu primer sesión.</div>`;
+    return;
+  }
+  wrap.innerHTML = entries.map((e,i) => {
+    const tags = (e.parsed?.ejercicios||[]).map(ej=>{
+      const p=[esc(ej.nombre)];
+      if(ej.peso_kg!=null) p.push(`⚖${esc(ej.peso_kg)}kg`);
+      if(ej.series!=null)  p.push(`${esc(ej.series)}×${esc(ej.reps||'?')}`);
+      return `<div class="entry-tag">${p.join(' · ')}</div>`;
+    }).join('');
+    return `<div class="log-entry" id="e${e.id}">
+      <button class="del-btn" onclick="delEntry(${e.id})" aria-label="Eliminar registro">✕</button>
+      <div class="entry-time">${esc(fmtDate(e.ts))}</div>
+      <div class="entry-text">${esc(e.transcript)}</div>
+      ${tags?`<div class="entry-tags">${tags}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function delEntry(id) {
+  entries = entries.filter(e=>e.id!==id);
+  persist(SK.entries,entries);
+  renderLog(); updateStats();
+}
+
+// ════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════
+function updateStats() {
+  document.getElementById('s-sessions').textContent = entries.length;
+  const todayMidnight = startOfDay(Date.now());
+  const today = entries.filter(e=>startOfDay(e.ts)===todayMidnight).length;
+  document.getElementById('s-today').textContent = today;
+
+  // streak — use numeric day timestamps (midnight) so sorting/comparison is correct
+  // regardless of locale string format (fixes "9/1/2026" vs "10/1/2026" lexicographic bug)
+  const dayTimestamps = [...new Set(entries.map(e => startOfDay(e.ts)))].sort((a,b) => b-a);
+  const ONE_DAY = 86400000;
+  let streak = 0;
+  let cursor = todayMidnight;
+  for (const day of dayTimestamps) {
+    if (day === cursor) {
+      streak++;
+      cursor -= ONE_DAY;
+    } else if (day === cursor - ONE_DAY && streak === 0) {
+      // allow starting the streak from yesterday if no entry today yet
+      streak++;
+      cursor = day - ONE_DAY;
+    } else {
+      break;
+    }
+  }
+  document.getElementById('s-streak').textContent = streak;
+
+  // unique exercises — reuse getExerciseData's normalized keys so "Sentadilla" and
+  // "sentadilla" count as the same exercise (consistent with the Progress tab)
+  document.getElementById('s-exercises').textContent = Object.keys(getExerciseData()).length;
+}
+
+// ════════════════════════════════════════════
+//  PROGRESS — EJERCICIOS
+// ════════════════════════════════════════════
+function getExerciseData() {
+  // collect all exercises with weights
+  const map = {};
+  const sorted = [...entries].sort((a,b)=>a.ts-b.ts);
+  sorted.forEach(entry=>{
+    (entry.parsed?.ejercicios||[]).forEach(ex=>{
+      if(ex.peso_kg==null) return;
+      const safeName = (ex.nombre && String(ex.nombre).trim()) || 'Ejercicio';
+      const key = safeName.toLowerCase().trim();
+      if(!map[key]) map[key]={ name:safeName, points:[] };
+      map[key].points.push({ ts:entry.ts, kg:ex.peso_kg });
+    });
+  });
+  return map;
+}
+
+function buildExSelector() {
+  const map = getExerciseData();
+  const keys = Object.keys(map);
+  const sel = document.getElementById('exSelector');
+
+  if(!keys.length){
+    sel.innerHTML='<span style="font-size:0.8rem;color:var(--chrome)">Sin ejercicios con peso registrados aún.</span>';
+    selectedExercise = null;
+    return;
+  }
+
+  // If the previously selected exercise no longer exists (e.g. entry deleted), reset to first
+  if(!selectedExercise || !map[selectedExercise]) {
+    selectedExercise = keys[0];
+  }
+
+  sel.innerHTML = keys.map(k => {
+    const active = selectedExercise === k ? 'active' : '';
+    return `<button class="ex-chip ${active}" data-key="${esc(k)}" onclick="selectExercise(this.dataset.key)">${esc(map[k].name)}</button>`;
+  }).join('');
+}
+
+function selectExercise(key) {
+  selectedExercise = key;
+  document.querySelectorAll('.ex-chip').forEach(c=>{
+    c.classList.toggle('active', c.dataset.key === key);
+  });
+  buildStrengthChart();
+}
+
+function setPeriod(days, btn) {
+  currentPeriod=days;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildStrengthChart();
+}
+
+function buildStrengthChart() {
+  buildExSelector();
+  const map = getExerciseData();
+  if(!selectedExercise || !map[selectedExercise]){ clearStrengthChart(); return; }
+
+  let pts = map[selectedExercise].points;
+  if(currentPeriod>0){
+    const cutoff = Date.now() - currentPeriod*86400000;
+    pts = pts.filter(p=>p.ts>=cutoff);
+  }
+  if(!pts.length){ clearStrengthChart(); return; }
+
+  const labels = pts.map(p=>new Date(p.ts).toLocaleDateString('es-ES',{day:'numeric',month:'short'}));
+  const data   = pts.map(p=>p.kg);
+
+  // moving average
+  const ma = data.map((_,i)=>{
+    const w = data.slice(Math.max(0,i-2),i+1);
+    return +(w.reduce((a,b)=>a+b,0)/w.length).toFixed(1);
+  });
+
+  const ctx=document.getElementById('strengthChart').getContext('2d');
+  if(strengthChart) strengthChart.destroy();
+
+  strengthChart = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Peso (kg)',
+          data,
+          borderColor:'rgba(255,77,28,0.9)',
+          backgroundColor:'rgba(255,77,28,0.08)',
+          borderWidth:2.5,
+          pointBackgroundColor:'rgba(255,77,28,1)',
+          pointRadius:4, pointHoverRadius:6,
+          fill:true, tension:0.35
+        },
+        {
+          label:'Media móvil',
+          data:ma,
+          borderColor:'rgba(0,212,255,0.7)',
+          backgroundColor:'transparent',
+          borderWidth:1.5, borderDash:[5,4],
+          pointRadius:0, fill:false, tension:0.5
+        }
+      ]
+    },
+    options: chartOptions('kg')
+  });
+  refreshProgressStats();
+}
+
+function clearStrengthChart() {
+  const ctx=document.getElementById('strengthChart').getContext('2d');
+  if(strengthChart) strengthChart.destroy();
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+}
+
+function refreshProgressStats() {
+  const map=getExerciseData();
+  if(!selectedExercise||!map[selectedExercise]){ return; }
+
+  // Use the same period-filtered points as the chart, so stats and chart always agree
+  let pts = map[selectedExercise].points;
+  if(currentPeriod > 0) {
+    const cutoff = Date.now() - currentPeriod*86400000;
+    pts = pts.filter(p => p.ts >= cutoff);
+  }
+  if(!pts.length) {
+    document.getElementById('ps-max').textContent='—';
+    document.getElementById('ps-first').textContent='—';
+    document.getElementById('ps-delta').textContent='—';
+    document.getElementById('ps-sessions').textContent='0';
+    return;
+  }
+
+  const weights=pts.map(p=>p.kg);
+  const max=Math.max(...weights);
+  const first=weights[0];
+  const last=weights[weights.length-1];
+  const delta=+(last-first).toFixed(1);
+  document.getElementById('ps-max').textContent=max+'kg';
+  document.getElementById('ps-first').textContent=first+'kg';
+  document.getElementById('ps-delta').textContent=(delta>=0?'+':'')+delta+'kg';
+  document.getElementById('ps-delta').style.color=delta>0?'var(--green)':delta<0?'var(--red)':'var(--chrome)';
+  document.getElementById('ps-sessions').textContent=pts.length;
+}
+
+function refreshAnalysis() {
+  const map=getExerciseData();
+  const banner=document.getElementById('analysisBanner');
+  const icon=document.getElementById('analysisIcon');
+  const title=document.getElementById('analysisTitle');
+  const text=document.getElementById('analysisText');
+
+  const keys=Object.keys(map);
+  if(!keys.length){
+    banner.style.background='var(--card)'; banner.style.borderColor='var(--border)';
+    icon.textContent='📊'; title.textContent='Sin datos suficientes';
+    text.textContent='Registra sesiones con el micrófono para ver el análisis.';
+    return;
+  }
+
+  let analyses = [];
+  keys.forEach(k=>{
+    const pts=map[k].points;
+    if(pts.length<3) return;
+    const last3=pts.slice(-3).map(p=>p.kg);
+    const avg=(a)=>a.reduce((x,y)=>x+y,0)/a.length;
+    const trend=last3[2]-last3[0];
+    const std=Math.sqrt(last3.map(x=>(x-avg(last3))**2).reduce((a,b)=>a+b,0)/last3.length);
+    analyses.push({ name:map[k].name, trend, std, pts });
+  });
+
+  if(!analyses.length){
+    banner.style.background='var(--card)'; banner.style.borderColor='var(--border)';
+    icon.textContent='⏳'; title.textContent='Casi listo';
+    text.textContent='Necesitas al menos 3 sesiones del mismo ejercicio para el análisis.';
+    return;
+  }
+
+  // Categorize each exercise into exactly ONE bucket (mutually exclusive) to avoid
+  // contradictory results, e.g. an exercise with trend=+0.5 previously counted as
+  // BOTH "progressing" (trend>0) AND "stagnant" (|trend|<1.5), which could make the
+  // banner claim "progress" for an exercise that's actually stagnant.
+  const STAGNANT_THRESHOLD = 1.5; // kg change considered noise, not real progress
+  const DECLINE_THRESHOLD = 2;    // kg drop considered a real regression
+
+  const progressing = analyses.filter(a => a.trend >= STAGNANT_THRESHOLD);
+  const declining    = analyses.filter(a => a.trend <= -DECLINE_THRESHOLD);
+  const stagnant     = analyses.filter(a =>
+    a.trend < STAGNANT_THRESHOLD && a.trend > -DECLINE_THRESHOLD
+  );
+
+  if(progressing.length>0 && declining.length===0){
+    banner.style.background='rgba(34,197,94,0.07)'; banner.style.borderColor='rgba(34,197,94,0.3)';
+    icon.textContent='🚀'; title.style.color='var(--green)'; title.textContent='¡Progreso detectado!';
+    text.textContent=`Estás mejorando en: ${progressing.map(a=>a.name).join(', ')}. Sigue así, la tendencia es positiva.`;
+  } else if(declining.length>0 && progressing.length===0){
+    banner.style.background='rgba(239,68,68,0.07)'; banner.style.borderColor='rgba(239,68,68,0.3)';
+    icon.textContent='📉'; title.style.color='var(--red)'; title.textContent='Bajada de rendimiento';
+    text.textContent=`Se detecta reducción en: ${declining.map(a=>a.name).join(', ')}. Puede ser fatiga acumulada; revisa tu descanso y recuperación.`;
+  } else if(progressing.length>0 && declining.length>0){
+    banner.style.background='rgba(250,204,21,0.07)'; banner.style.borderColor='rgba(250,204,21,0.3)';
+    icon.textContent='📊'; title.style.color='var(--yellow)'; title.textContent='Resultados mixtos';
+    text.textContent=`Progresas en ${progressing.map(a=>a.name).join(', ')}, pero bajas en ${declining.map(a=>a.name).join(', ')}. Revisa la recuperación de los ejercicios en declive.`;
+  } else if(stagnant.length>0){
+    banner.style.background='rgba(250,204,21,0.07)'; banner.style.borderColor='rgba(250,204,21,0.3)';
+    icon.textContent='⚠️'; title.style.color='var(--yellow)'; title.textContent='Posible estancamiento';
+    text.textContent=`En ${stagnant.map(a=>a.name).join(', ')} los pesos se mantienen sin variación. Considera cambiar el volumen, el descanso o la nutrición.`;
+  } else {
+    banner.style.background='var(--card)'; banner.style.borderColor='var(--border)';
+    icon.textContent='📊'; title.style.color='var(--white)'; title.textContent='Análisis en curso';
+    text.textContent='Los datos son variados. Continúa registrando para obtener un patrón claro.';
+  }
+}
+
+// ════════════════════════════════════════════
+//  BODY CHARTS
+// ════════════════════════════════════════════
+function buildBodyCharts() {
+  if(!bmiHistory.length) { clearBodyCharts(); renderBmiHistory(); return; }
+  const sorted=[...bmiHistory].sort((a,b)=>a.ts-b.ts);
+  const labels=sorted.map(r=>new Date(r.ts).toLocaleDateString('es-ES',{day:'numeric',month:'short'}));
+  const weights=sorted.map(r=>r.weight);
+  const imcs=sorted.map(r=>r.imc);
+
+  // Weight chart
+  const wCtx=document.getElementById('weightChart').getContext('2d');
+  if(weightChart) weightChart.destroy();
+  weightChart=new Chart(wCtx,{
+    type:'line',
+    data:{labels,datasets:[{
+      label:'Peso (kg)', data:weights,
+      borderColor:'rgba(0,212,255,0.9)', backgroundColor:'rgba(0,212,255,0.08)',
+      borderWidth:2.5, pointBackgroundColor:'rgba(0,212,255,1)',
+      pointRadius:4, fill:true, tension:0.35
+    }]},
+    options: chartOptions('kg')
+  });
+
+  // IMC chart
+  const iCtx=document.getElementById('imcChart').getContext('2d');
+  if(imcChart) imcChart.destroy();
+  imcChart=new Chart(iCtx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'IMC', data:imcs,
+          borderColor:'rgba(255,77,28,0.9)', backgroundColor:'rgba(255,77,28,0.08)',
+          borderWidth:2.5, pointBackgroundColor:'rgba(255,77,28,1)',
+          pointRadius:4, fill:true, tension:0.35
+        },
+        {
+          label:'Normal (24.9)', data:imcs.map(()=>24.9),
+          borderColor:'rgba(34,197,94,0.4)', backgroundColor:'transparent',
+          borderWidth:1, borderDash:[6,4], pointRadius:0
+        },
+        {
+          label:'Sobrepeso (25)', data:imcs.map(()=>25),
+          borderColor:'rgba(250,204,21,0.4)', backgroundColor:'transparent',
+          borderWidth:1, borderDash:[3,4], pointRadius:0
+        }
+      ]
+    },
+    options: chartOptions('')
+  });
+}
+
+function clearBodyCharts() {
+  ['weightChart','imcChart'].forEach(id=>{
+    const ctx=document.getElementById(id).getContext('2d');
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  });
+}
+
+function renderBmiHistory() {
+  const wrap=document.getElementById('bmiHistory');
+  if(!bmiHistory.length){
+    wrap.innerHTML='<div style="text-align:center;padding:2rem;color:var(--chrome);font-size:0.85rem">Sin registros aún. Ve a <strong>Perfil</strong> para añadir tus datos.</div>';
+    return;
+  }
+  const sorted=[...bmiHistory].sort((a,b)=>b.ts-a.ts);
+  wrap.innerHTML=sorted.map(r=>{
+    const {color,label}=imcCategory(r.imc);
+    return `<div class="bmi-entry">
+      <span class="bmi-date">${esc(fmtDate(r.ts))}</span>
+      <div class="bmi-vals">
+        <div class="bmi-val-item">
+          <div class="bmi-val-num">${esc(r.weight)}<span style="font-size:0.65rem;color:var(--chrome)">kg</span></div>
+          <div class="bmi-val-lbl">Peso</div>
+        </div>
+        <div class="bmi-val-item">
+          <div class="bmi-val-num">${esc(r.height)}<span style="font-size:0.65rem;color:var(--chrome)">cm</span></div>
+          <div class="bmi-val-lbl">Talla</div>
+        </div>
+        <div class="bmi-val-item">
+          <div class="bmi-val-num" style="color:${color}">${esc(r.imc)}</div>
+          <div class="bmi-val-lbl">IMC</div>
+        </div>
+        <div class="bmi-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${esc(label)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+//  PROFILE
+// ════════════════════════════════════════════
+function loadProfileForm() {
+  if(profile.name)   document.getElementById('pf-name').value=profile.name;
+  if(profile.birth)  document.getElementById('pf-birth').value=profile.birth;
+  if(profile.weight) document.getElementById('pf-weight').value=profile.weight;
+  if(profile.height) document.getElementById('pf-height').value=profile.height;
+  if(profile.sex)    document.getElementById('pf-sex').value=profile.sex;
+  if(profile.goal)   document.getElementById('pf-goal').value=profile.goal;
+  refreshImcDisplay();
+}
+
+function saveProfile() {
+  const w=parseFloat(document.getElementById('pf-weight').value);
+  const h=parseFloat(document.getElementById('pf-height').value);
+
+  // Validate ranges before persisting — prevents NaN/Infinity IMC and nonsensical records
+  const validWeight = isFinite(w) && w > 0 && w <= 400;
+  const validHeight = isFinite(h) && h > 0 && h <= 280;
+
+  if(document.getElementById('pf-weight').value && !validWeight) {
+    toast('⚠ Peso inválido (debe ser entre 1 y 400 kg)');
+    return;
+  }
+  if(document.getElementById('pf-height').value && !validHeight) {
+    toast('⚠ Talla inválida (debe ser entre 1 y 280 cm)');
+    return;
+  }
+
+  profile = {
+    name:  document.getElementById('pf-name').value,
+    birth: document.getElementById('pf-birth').value,
+    weight: validWeight ? w : null,
+    height: validHeight ? h : null,
+    sex:  document.getElementById('pf-sex').value,
+    goal: document.getElementById('pf-goal').value
+  };
+  persist(SK.profile, profile);
+
+  if(validWeight && validHeight) {
+    const imc = calcIMC(w,h);
+    bmiHistory.push({ ts:Date.now(), weight:w, height:h, imc });
+    persist(SK.bmiHistory, bmiHistory);
+  }
+  refreshImcDisplay();
+  toast('✅ Perfil guardado');
+}
+
+function calcIMC(w,h) {
+  if(!w || !h || h <= 0) return 0;
+  return +((w/((h/100)**2)).toFixed(1));
+}
+
+function imcCategory(imc) {
+  if(imc<18.5) return {color:'var(--cyan)',label:'Bajo peso'};
+  if(imc<25)   return {color:'var(--green)',label:'Normal'};
+  if(imc<30)   return {color:'var(--yellow)',label:'Sobrepeso'};
+  return {color:'var(--red)',label:'Obesidad'};
+}
+
+function refreshImcDisplay() {
+  const w=profile.weight, h=profile.height;
+  document.getElementById('profileWeightDisplay').textContent=w||'—';
+  document.getElementById('profileHeightDisplay').textContent=h||'—';
+  if(w&&h){
+    const imc=calcIMC(w,h);
+    const {color,label}=imcCategory(imc);
+    document.getElementById('imcValue').textContent=imc;
+    document.getElementById('imcValue').style.color=color;
+    document.getElementById('imcCategory').textContent=label;
+    document.getElementById('imcCategory').style.color=color;
+    // ring: map imc 15–40 to 0–100%
+    const pct=Math.min(100,Math.max(0,(imc-15)/25*100));
+    const circ=314;
+    const offset=circ-(pct/100*circ);
+    document.getElementById('imcRingFg').style.strokeDashoffset=offset;
+    document.getElementById('imcRingFg').style.stroke=color;
+  }
+}
+
+// ════════════════════════════════════════════
+//  CHART OPTIONS (shared)
+// ════════════════════════════════════════════
+function chartOptions(yUnit) {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{ labels:{ color:'rgba(176,176,208,0.8)', font:{size:11}, boxWidth:14 } },
+      tooltip:{
+        backgroundColor:'rgba(19,19,26,0.95)',
+        borderColor:'rgba(48,48,72,0.8)', borderWidth:1,
+        titleColor:'#eeeef8', bodyColor:'#b0b0d0',
+        padding:10,
+        callbacks:{
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}${yUnit}`
+        }
+      }
+    },
+    scales:{
+      x:{
+        grid:{ color:'rgba(37,37,53,0.8)' },
+        ticks:{ color:'rgba(120,120,160,0.8)', font:{size:10} }
+      },
+      y:{
+        grid:{ color:'rgba(37,37,53,0.8)' },
+        ticks:{ color:'rgba(120,120,160,0.8)', font:{size:10},
+          callback: v => v+(yUnit?yUnit:'') }
+      }
+    },
+    animation:{ duration:600, easing:'easeInOutQuart' }
+  };
+}
+
+// ════════════════════════════════════════════
+//  EXPORT
+// ════════════════════════════════════════════
+function exportLog() {
+  if(!entries.length){ toast('No hay registros para exportar'); return; }
+  try {
+    let txt='═══ IRONLOG PRO — BITÁCORA ═══\n';
+    txt+=`Exportado: ${new Date().toLocaleString('es-ES')}\nTotal: ${entries.length} sesiones\n\n`;
+    entries.forEach((e,i)=>{
+      txt+=`─── SESIÓN ${entries.length-i} ───\n`;
+      txt+=`Fecha: ${fmtDate(e.ts)}\nNota: ${e.transcript}\n`;
+      (e.parsed?.ejercicios||[]).forEach(ej=>{
+        txt+=`  • ${ej.nombre}`;
+        if(ej.peso_kg!=null) txt+=` | ${ej.peso_kg}kg`;
+        if(ej.series!=null)  txt+=` | ${ej.series}×${ej.reps||'?'}`;
+        txt+='\n';
+      });
+      txt+='\n';
+    });
+    if(bmiHistory.length){
+      txt+='═══ HISTORIAL CORPORAL ═══\n';
+      [...bmiHistory].sort((a,b)=>b.ts-a.ts).forEach(r=>{
+        txt+=`${fmtDate(r.ts)} | Peso: ${r.weight}kg | Talla: ${r.height}cm | IMC: ${r.imc}\n`;
+      });
+    }
+    const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`ironlog_${new Date().toLocaleDateString('es-ES').replace(/\//g,'-')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000); // free memory after download starts
+    toast('📥 Bitácora exportada');
+  } catch(err) {
+    console.error('Error exportando:', err);
+    toast('⚠ Error al exportar la bitácora');
+  }
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+
+    ' · '+new Date(ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}
+
+// Returns the timestamp (ms) for midnight of the day containing ts — locale-independent,
+// safe for numeric comparison/sorting (fixes streak calculation bugs).
+function startOfDay(ts) {
+  const d = new Date(ts);
+  d.setHours(0,0,0,0);
+  return d.getTime();
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+document.getElementById('micBtn').addEventListener('click', () => toggleMic());
+document.getElementById('saveBtn').addEventListener('click', saveEntry);
+document.getElementById('exportBtn').addEventListener('click', exportLog);
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  if(!entries.length) return;
+  if(confirm('¿Eliminar todos los registros de la bitácora de entrenamientos? (Tu perfil e historial de peso/IMC no se verán afectados)')){
+    entries=[]; persist(SK.entries,entries);
+    renderLog(); updateStats(); toast('Bitácora limpiada');
+  }
+});
+
+tickClock(); setInterval(tickClock,1000);
+load().then(()=>{ renderLog(); updateStats(); refreshImcDisplay(); });
+
+// Early check: warn if speech API not available
+if(!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+  setMicStatus('⚠ Voz no disponible. Usa Chrome o Edge.');
+} else if(location.protocol === 'file:') {
+  setMicStatus('⚠ Abre desde un servidor para activar el micrófono.');
+}
+</script>
+</body>
+</html>
