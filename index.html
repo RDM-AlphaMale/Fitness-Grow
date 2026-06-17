@@ -5,6 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IronLog Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script type="module">
+  // ════════════════════════════════════════════
+  //  FIREBASE SDK (modular v10, via CDN)
+  // ════════════════════════════════════════════
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, onAuthStateChanged, sendPasswordResetEmail
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, deleteDoc
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+  // ──────────────────────────────────────────────
+  //  ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE
+  //  (Firebase Console → Configuración del proyecto → Tus apps → Config SDK)
+  // ──────────────────────────────────────────────
+ const firebaseConfig = {
+  apiKey: "AIzaSyDlWhWbr6kBnKyi23O_k_0oZEfNocNLEig",
+  authDomain: "fitness-grow-7593c.firebaseapp.com",
+  projectId: "fitness-grow-7593c",
+  storageBucket: "fitness-grow-7593c.firebasestorage.app",
+  messagingSenderId: "141635846550",
+  appId: "1:141635846550:web:87150aa737d8401e3eddb7",
+  measurementId: "G-KPFR18Q2W6"
+
+  try {
+    const fbApp = initializeApp(firebaseConfig);
+    const auth = getAuth(fbApp);
+    const db = getFirestore(fbApp);
+
+    // Expose to the global (non-module) script below, since modules have their own scope
+    window.__firebase = {
+      auth, db, doc, getDoc, setDoc, deleteDoc,
+      createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      signOut, onAuthStateChanged, sendPasswordResetEmail
+    };
+
+    // Modules execute deferred/async — signal readiness explicitly rather than relying
+    // on script execution order, which is not guaranteed between module and non-module scripts.
+    window.__firebaseReady = true;
+    window.dispatchEvent(new Event('firebase-ready'));
+  } catch(err) {
+    console.error('Error inicializando Firebase:', err);
+    window.__firebaseInitError = err;
+    window.dispatchEvent(new Event('firebase-init-error'));
+  }
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -96,6 +144,83 @@ nav {
   border-left: 1px solid var(--border);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.nav-user {
+  display:flex; align-items:center; gap:0.6rem;
+  padding: 0 1rem; border-left:1px solid var(--border);
+  flex-shrink:0; white-space:nowrap;
+}
+.nav-user-email {
+  font-size:0.72rem; color:var(--silver); font-family:var(--font-mono);
+  max-width:140px; overflow:hidden; text-overflow:ellipsis;
+}
+.nav-logout-btn {
+  background:transparent; border:1px solid var(--border2); border-radius:6px;
+  color:var(--chrome); font-size:0.68rem; font-weight:600; letter-spacing:0.05em;
+  padding:0.3rem 0.6rem; cursor:pointer; transition:all .2s; text-transform:uppercase;
+}
+.nav-logout-btn:hover { border-color:var(--ember); color:var(--ember); }
+
+/* ═══════════════════════════════════════
+   AUTH SCREEN
+═══════════════════════════════════════ */
+#authScreen {
+  position:fixed; inset:0; z-index:1000;
+  background: var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  padding:1.5rem;
+}
+.auth-card {
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  padding:2.2rem 2rem; max-width:400px; width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.auth-logo {
+  text-align:center; margin-bottom:1.8rem;
+}
+.auth-logo .big {
+  font-family:var(--font-display); font-size:2.4rem; letter-spacing:0.06em;
+  color:var(--ember);
+}
+.auth-logo .big span { color:var(--white); }
+.auth-logo .sub {
+  font-size:0.78rem; color:var(--chrome); letter-spacing:0.05em; margin-top:0.3rem;
+}
+.auth-tabs {
+  display:flex; gap:0.4rem; margin-bottom:1.4rem;
+  background:var(--surface); border-radius:9px; padding:0.25rem;
+}
+.auth-tab {
+  flex:1; padding:0.5rem; border:none; background:transparent; border-radius:7px;
+  color:var(--chrome); font-size:0.78rem; font-weight:600; letter-spacing:0.06em;
+  text-transform:uppercase; cursor:pointer; transition:all .2s;
+}
+.auth-tab.active { background:var(--ember); color:#fff; }
+.auth-form { display:flex; flex-direction:column; gap:0.9rem; }
+.auth-form .field input { width:100%; }
+.auth-error {
+  background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px; padding:0.6rem 0.9rem; font-size:0.8rem; color:#ff8080;
+  display:none;
+}
+.auth-error.show { display:block; }
+.auth-submit-btn {
+  background:var(--ember); border:none; border-radius:9px; padding:0.8rem;
+  font-family:var(--font-display); font-size:1.05rem; letter-spacing:0.08em;
+  color:#fff; cursor:pointer; transition:background .2s; margin-top:0.3rem;
+}
+.auth-submit-btn:hover { background:#ff6a3d; }
+.auth-submit-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.auth-forgot {
+  text-align:center; font-size:0.76rem; color:var(--chrome);
+  cursor:pointer; text-decoration:underline; margin-top:0.3rem;
+}
+.auth-forgot:hover { color:var(--ember); }
+.auth-loading-screen {
+  position:fixed; inset:0; z-index:1001; background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); color:var(--chrome); font-size:0.85rem;
 }
 
 /* ═══ PAGES ═══ */
@@ -473,6 +598,39 @@ nav {
 </head>
 <body>
 
+<!-- ═══ LOADING SCREEN (shown while Firebase checks auth state) ═══ -->
+<div class="auth-loading-screen" id="authLoading">Cargando IronLog...</div>
+
+<!-- ═══ AUTH SCREEN (login / signup) ═══ -->
+<div id="authScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="big">Iron<span>Log</span></div>
+      <div class="sub">PRO · Tu bitácora de fuerza en la nube</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" type="button" onclick="setAuthMode('login')">Iniciar sesión</button>
+      <button class="auth-tab" id="tabSignup" type="button" onclick="setAuthMode('signup')">Crear cuenta</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <form class="auth-form" id="authForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="auth-password" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required minlength="6">
+      </div>
+      <button type="submit" class="auth-submit-btn" id="authSubmitBtn">Entrar</button>
+      <div class="auth-forgot" id="authForgot" onclick="handleForgotPassword()">¿Olvidaste tu contraseña?</div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP (hidden until logged in) ═══ -->
+<div id="appRoot" style="display:none">
+
 <!-- ═══ NAV ═══ -->
 <nav>
   <div class="nav-logo">Iron<span>Log</span> <span style="color:var(--chrome);font-size:0.8rem;letter-spacing:0.2em">PRO</span></div>
@@ -483,6 +641,10 @@ nav {
     <button class="nav-tab" onclick="showPage('profile',this)">👤 Perfil</button>
   </div>
   <div class="nav-clock" id="navClock"></div>
+  <div class="nav-user">
+    <span class="nav-user-email" id="navUserEmail"></span>
+    <button class="nav-logout-btn" type="button" onclick="handleLogout()">Salir</button>
+  </div>
 </nav>
 
 <!-- ══════════════════════════════════════
@@ -767,16 +929,12 @@ nav {
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+</div><!-- /#appRoot -->
+
 <script>
 // ════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════
-const SK = {
-  entries: 'ironlog_entries_v2',
-  profile: 'ironlog_profile_v2',
-  bmiHistory: 'ironlog_bmi_v2'
-};
-
 let entries = [];
 let profile = {};
 let bmiHistory = [];
@@ -792,39 +950,197 @@ let imcChart = null;
 let selectedExercise = null;
 let currentPeriod = 30;
 
-// ════════════════════════════════════════════
-//  STORAGE
-// ════════════════════════════════════════════
-const storageAvailable = typeof window.storage !== 'undefined' && window.storage !== null;
+let currentUser = null;   // Firebase user object once logged in
+let authMode = 'login';   // 'login' | 'signup'
 
-async function load() {
-  if(!storageAvailable) {
-    console.warn('window.storage no disponible — los datos no persistirán entre sesiones.');
-    entries=[]; profile={}; bmiHistory=[];
-    return;
-  }
+// ════════════════════════════════════════════
+//  FIREBASE AUTH — variables populated once Firebase module is ready
+// ════════════════════════════════════════════
+let auth, db, doc, getDoc, setDoc, createUserWithEmailAndPassword,
+    signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail;
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode==='login');
+  document.getElementById('tabSignup').classList.toggle('active', mode==='signup');
+  document.getElementById('authSubmitBtn').textContent = mode==='login' ? 'Entrar' : 'Crear cuenta';
+  document.getElementById('authForgot').style.display = mode==='login' ? 'block' : 'none';
+  hideAuthError();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideAuthError() {
+  document.getElementById('authError').classList.remove('show');
+}
+
+// Translate common Firebase error codes into clear Spanish messages
+function translateAuthError(err) {
+  const code = err?.code || '';
+  const map = {
+    'auth/invalid-email': 'El email no es válido.',
+    'auth/user-not-found': 'No existe una cuenta con ese email.',
+    'auth/wrong-password': 'Contraseña incorrecta.',
+    'auth/invalid-credential': 'Email o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ya existe una cuenta con ese email. Inicia sesión.',
+    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+    'auth/too-many-requests': 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+    'auth/network-request-failed': 'Error de conexión. Revisa tu internet.',
+    'auth/configuration-not-found': 'Firebase no está configurado correctamente. Revisa firebaseConfig.'
+  };
+  return map[code] || ('Error: ' + (err?.message || 'desconocido'));
+}
+
+document.getElementById('authForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAuthError();
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  const btn   = document.getElementById('authSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = authMode === 'login' ? 'Entrando...' : 'Creando cuenta...';
+
   try {
-    const [e, p, b] = await Promise.all([
-      window.storage.get(SK.entries).catch(()=>null),
-      window.storage.get(SK.profile).catch(()=>null),
-      window.storage.get(SK.bmiHistory).catch(()=>null)
-    ]);
-    entries     = e ? JSON.parse(e.value) : [];
-    profile     = p ? JSON.parse(p.value) : {};
-    bmiHistory  = b ? JSON.parse(b.value) : [];
+    if(authMode === 'login') {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } else {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    }
+    // onAuthStateChanged will pick up the new session and switch screens
   } catch(err) {
-    console.error('Error cargando datos:', err);
-    entries=[]; profile={}; bmiHistory=[];
+    showAuthError(translateAuthError(err));
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Entrar' : 'Crear cuenta';
+  }
+});
+
+async function handleForgotPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  if(!email) { showAuthError('Escribe tu email arriba primero, luego toca "¿Olvidaste tu contraseña?".'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    hideAuthError();
+    toast('📧 Te enviamos un correo para restablecer tu contraseña');
+  } catch(err) {
+    showAuthError(translateAuthError(err));
   }
 }
 
-async function persist(key, val) {
-  if(!storageAvailable) return;
-  try { await window.storage.set(key, JSON.stringify(val)); }
-  catch(e){ console.error('Error guardando datos:', e); toast('⚠ No se pudo guardar'); }
+async function handleLogout() {
+  if(!confirm('¿Cerrar sesión?')) return;
+  try { await signOut(auth); }
+  catch(err) { console.error('Error al cerrar sesión:', err); }
+}
+
+// Central auth state listener — drives which screen is visible
+// Central auth state listener — drives which screen is visible.
+// Wrapped in boot() because it needs `auth`/`onAuthStateChanged`, which are only
+// populated once the Firebase module script (in <head>, loaded as type="module")
+// has finished executing — module scripts run deferred, so we can't assume they're
+// ready just because this non-module script appears later in the document.
+function boot() {
+  ({ auth, db, doc, getDoc, setDoc, createUserWithEmailAndPassword,
+     signInWithEmailAndPassword, signOut, onAuthStateChanged,
+     sendPasswordResetEmail } = window.__firebase);
+
+  onAuthStateChanged(auth, async (user) => {
+    document.getElementById('authLoading').style.display = 'none';
+
+    if(user) {
+      currentUser = user;
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('appRoot').style.display = 'block';
+      document.getElementById('navUserEmail').textContent = user.email || '';
+
+      await loadUserData();
+      renderLog(); updateStats(); refreshImcDisplay();
+    } else {
+      currentUser = null;
+      document.getElementById('appRoot').style.display = 'none';
+      document.getElementById('authScreen').style.display = 'flex';
+      // Reset submit button state in case it was left disabled after logout
+      const btn = document.getElementById('authSubmitBtn');
+      btn.disabled = false;
+      btn.textContent = authMode === 'login' ? 'Entrar' : 'Crear cuenta';
+    }
+  });
+}
+
+// Start as soon as Firebase signals readiness. If it already fired before this
+// script ran (the common case, since the module is in <head>), check a flag instead.
+if(window.__firebaseReady) {
+  boot();
+} else if(window.__firebaseInitError) {
+  showFirebaseConfigError();
+} else {
+  window.addEventListener('firebase-ready', boot, { once: true });
+  window.addEventListener('firebase-init-error', showFirebaseConfigError, { once: true });
+}
+
+function showFirebaseConfigError() {
+  document.getElementById('authLoading').innerHTML =
+    '⚠ No se pudo conectar con Firebase.<br><br>' +
+    'Revisa que reemplazaste <code>firebaseConfig</code> en el HTML con los valores reales ' +
+    'de tu proyecto (Firebase Console → Configuración del proyecto → Tus apps).';
+  document.getElementById('authLoading').style.textAlign = 'center';
+  document.getElementById('authLoading').style.padding = '2rem';
+  document.getElementById('authLoading').style.lineHeight = '1.8';
 }
 
 // ════════════════════════════════════════════
+//  FIRESTORE PERSISTENCE (scoped per user uid)
+// ════════════════════════════════════════════
+// Document layout: users/{uid}  →  { entries: [...], profile: {...}, bmiHistory: [...] }
+// Single document per user keeps reads/writes simple and within Firestore's free tier easily.
+
+function userDocRef() {
+  if(!currentUser) return null;
+  return doc(db, 'users', currentUser.uid);
+}
+
+async function loadUserData() {
+  const ref = userDocRef();
+  if(!ref) { entries=[]; profile={}; bmiHistory=[]; return; }
+  try {
+    const snap = await getDoc(ref);
+    if(snap.exists()) {
+      const data = snap.data();
+      entries    = Array.isArray(data.entries) ? data.entries : [];
+      profile    = (data.profile && typeof data.profile === 'object') ? data.profile : {};
+      bmiHistory = Array.isArray(data.bmiHistory) ? data.bmiHistory : [];
+    } else {
+      entries=[]; profile={}; bmiHistory=[];
+    }
+  } catch(err) {
+    console.error('Error cargando datos de Firestore:', err);
+    entries=[]; profile={}; bmiHistory=[];
+    toast('⚠ No se pudieron cargar tus datos. Revisa tu conexión.');
+  }
+}
+
+// Debounced write queue — avoids hammering Firestore if multiple saves happen quickly
+let saveTimeout = null;
+async function persistAll() {
+  const ref = userDocRef();
+  if(!ref) return;
+  clearTimeout(saveTimeout);
+  return new Promise((resolve) => {
+    saveTimeout = setTimeout(async () => {
+      try {
+        await setDoc(ref, { entries, profile, bmiHistory, updatedAt: Date.now() }, { merge: true });
+      } catch(err) {
+        console.error('Error guardando en Firestore:', err);
+        toast('⚠ No se pudo guardar en la nube');
+      }
+      resolve();
+    }, 300);
+  });
+}
+
+
 //  NAV
 // ════════════════════════════════════════════
 let activePage = 'record';
@@ -1095,7 +1411,7 @@ function saveEntry() {
     parsed: currentParsed
   };
   entries.unshift(entry);
-  persist(SK.entries, entries);
+  persistAll();
   renderLog(); updateStats();
   toast('✅ Guardado en bitácora');
   currentTranscript=''; currentParsed=null;
@@ -1132,7 +1448,7 @@ function renderLog() {
 
 function delEntry(id) {
   entries = entries.filter(e=>e.id!==id);
-  persist(SK.entries,entries);
+  persistAll();
   renderLog(); updateStats();
 }
 
@@ -1514,13 +1830,13 @@ function saveProfile() {
     sex:  document.getElementById('pf-sex').value,
     goal: document.getElementById('pf-goal').value
   };
-  persist(SK.profile, profile);
 
   if(validWeight && validHeight) {
     const imc = calcIMC(w,h);
     bmiHistory.push({ ts:Date.now(), weight:w, height:h, imc });
-    persist(SK.bmiHistory, bmiHistory);
   }
+
+  persistAll(); // single write with profile + bmiHistory already updated
   refreshImcDisplay();
   toast('✅ Perfil guardado');
 }
@@ -1662,13 +1978,13 @@ document.getElementById('exportBtn').addEventListener('click', exportLog);
 document.getElementById('clearBtn').addEventListener('click', ()=>{
   if(!entries.length) return;
   if(confirm('¿Eliminar todos los registros de la bitácora de entrenamientos? (Tu perfil e historial de peso/IMC no se verán afectados)')){
-    entries=[]; persist(SK.entries,entries);
+    entries=[]; persistAll();
     renderLog(); updateStats(); toast('Bitácora limpiada');
   }
 });
 
 tickClock(); setInterval(tickClock,1000);
-load().then(()=>{ renderLog(); updateStats(); refreshImcDisplay(); });
+// Data loading happens inside onAuthStateChanged once we know who's logged in
 
 // Early check: warn if speech API not available
 if(!window.SpeechRecognition && !window.webkitSpeechRecognition) {
