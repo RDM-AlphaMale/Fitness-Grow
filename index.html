@@ -6,9 +6,9 @@
 <title>IronLog Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script type="module">
-  // ════════════════════════════════════════════
+  // ============================================
   //  FIREBASE SDK (modular v10, via CDN)
-  // ════════════════════════════════════════════
+  // ============================================
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
   import {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
@@ -18,39 +18,52 @@
     getFirestore, doc, getDoc, setDoc, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-  // ──────────────────────────────────────────────
-  //  ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE
-  //  (Firebase Console → Configuración del proyecto → Tus apps → Config SDK)
-  // ──────────────────────────────────────────────
- const firebaseConfig = {
-  apiKey: "AIzaSyDlWhWbr6kBnKyi23O_k_0oZEfNocNLEig",
-  authDomain: "fitness-grow-7593c.firebaseapp.com",
-  projectId: "fitness-grow-7593c",
-  storageBucket: "fitness-grow-7593c.firebasestorage.app",
-  messagingSenderId: "141635846550",
-  appId: "1:141635846550:web:87150aa737d8401e3eddb7",
-  measurementId: "G-KPFR18Q2W6"
+  // ----------------------------------------------
+  //  [!] REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE
+  //  (Firebase Console -> Configuración del proyecto -> Tus apps -> Config SDK)
+  // ----------------------------------------------
+  const firebaseConfig = {
+    apiKey: "AIzaSyDlWhWbr6kBnKyi23O_k_0oZEfNocNLEig",
+    authDomain: "fitness-grow-7593c.firebaseapp.com",
+    projectId: "fitness-grow-7593c",
+    storageBucket: "fitness-grow-7593c.firebasestorage.app",
+    messagingSenderId: "141635846550",
+    appId: "1:141635846550:web:87150aa737d8401e3eddb7",
+    measurementId: "G-KPFR18Q2W6"
+  };
 
-  try {
-    const fbApp = initializeApp(firebaseConfig);
-    const auth = getAuth(fbApp);
-    const db = getFirestore(fbApp);
+  // Detect placeholder values BEFORE calling any Firebase function. Without this check,
+  // getAuth()/getFirestore() can fail silently or asynchronously later (outside this
+  // try/catch), leaving the user stuck on "Cargando IronLog..." forever with no clue why.
+  const stillPlaceholder = Object.values(firebaseConfig).some(
+    v => typeof v === 'string' && v.startsWith('TU_')
+  );
 
-    // Expose to the global (non-module) script below, since modules have their own scope
-    window.__firebase = {
-      auth, db, doc, getDoc, setDoc, deleteDoc,
-      createUserWithEmailAndPassword, signInWithEmailAndPassword,
-      signOut, onAuthStateChanged, sendPasswordResetEmail
-    };
-
-    // Modules execute deferred/async — signal readiness explicitly rather than relying
-    // on script execution order, which is not guaranteed between module and non-module scripts.
-    window.__firebaseReady = true;
-    window.dispatchEvent(new Event('firebase-ready'));
-  } catch(err) {
-    console.error('Error inicializando Firebase:', err);
-    window.__firebaseInitError = err;
+  if(stillPlaceholder) {
+    window.__firebaseInitError = new Error('firebaseConfig todavía tiene valores de ejemplo (TU_API_KEY, etc). Reemplázalos con los datos reales de tu proyecto Firebase.');
     window.dispatchEvent(new Event('firebase-init-error'));
+  } else {
+    try {
+      const fbApp = initializeApp(firebaseConfig);
+      const auth = getAuth(fbApp);
+      const db = getFirestore(fbApp);
+
+      // Expose to the global (non-module) script below, since modules have their own scope
+      window.__firebase = {
+        auth, db, doc, getDoc, setDoc, deleteDoc,
+        createUserWithEmailAndPassword, signInWithEmailAndPassword,
+        signOut, onAuthStateChanged, sendPasswordResetEmail
+      };
+
+      // Modules execute deferred/async - signal readiness explicitly rather than relying
+      // on script execution order, which is not guaranteed between module and non-module scripts.
+      window.__firebaseReady = true;
+      window.dispatchEvent(new Event('firebase-ready'));
+    } catch(err) {
+      console.error('Error inicializando Firebase:', err);
+      window.__firebaseInitError = err;
+      window.dispatchEvent(new Event('firebase-init-error'));
+    }
   }
 </script>
 <style>
@@ -932,9 +945,9 @@ nav {
 </div><!-- /#appRoot -->
 
 <script>
-// ════════════════════════════════════════════
+// ============================================
 //  STATE
-// ════════════════════════════════════════════
+// ============================================
 let entries = [];
 let profile = {};
 let bmiHistory = [];
@@ -953,9 +966,9 @@ let currentPeriod = 30;
 let currentUser = null;   // Firebase user object once logged in
 let authMode = 'login';   // 'login' | 'signup'
 
-// ════════════════════════════════════════════
-//  FIREBASE AUTH — variables populated once Firebase module is ready
-// ════════════════════════════════════════════
+// ============================================
+//  FIREBASE AUTH - variables populated once Firebase module is ready
+// ============================================
 let auth, db, doc, getDoc, setDoc, createUserWithEmailAndPassword,
     signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail;
 
@@ -1035,11 +1048,11 @@ async function handleLogout() {
   catch(err) { console.error('Error al cerrar sesión:', err); }
 }
 
-// Central auth state listener — drives which screen is visible
-// Central auth state listener — drives which screen is visible.
+// Central auth state listener - drives which screen is visible
+// Central auth state listener - drives which screen is visible.
 // Wrapped in boot() because it needs `auth`/`onAuthStateChanged`, which are only
 // populated once the Firebase module script (in <head>, loaded as type="module")
-// has finished executing — module scripts run deferred, so we can't assume they're
+// has finished executing - module scripts run deferred, so we can't assume they're
 // ready just because this non-module script appears later in the document.
 function boot() {
   ({ auth, db, doc, getDoc, setDoc, createUserWithEmailAndPassword,
@@ -1078,22 +1091,34 @@ if(window.__firebaseReady) {
 } else {
   window.addEventListener('firebase-ready', boot, { once: true });
   window.addEventListener('firebase-init-error', showFirebaseConfigError, { once: true });
+
+  // Safety net: if neither event fires within 8s (unexpected failure mode, blocked
+  // CDN, ad-blocker stripping the module script, etc), stop the infinite loading
+  // screen and tell the user something is wrong instead of leaving them stuck.
+  setTimeout(() => {
+    if(!window.__firebaseReady && !window.__firebaseInitError) {
+      showFirebaseConfigError();
+    }
+  }, 8000);
 }
 
 function showFirebaseConfigError() {
+  const err = window.__firebaseInitError;
+  const specificMsg = err?.message || 'Tiempo de espera agotado conectando con Firebase.';
   document.getElementById('authLoading').innerHTML =
-    '⚠ No se pudo conectar con Firebase.<br><br>' +
+    '[!] No se pudo conectar con Firebase.<br><br>' +
+    '<span style="color:#ff8080;font-size:0.8em">' + specificMsg + '</span><br><br>' +
     'Revisa que reemplazaste <code>firebaseConfig</code> en el HTML con los valores reales ' +
-    'de tu proyecto (Firebase Console → Configuración del proyecto → Tus apps).';
+    'de tu proyecto (Firebase Console -> Configuración del proyecto -> Tus apps).';
   document.getElementById('authLoading').style.textAlign = 'center';
   document.getElementById('authLoading').style.padding = '2rem';
   document.getElementById('authLoading').style.lineHeight = '1.8';
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  FIRESTORE PERSISTENCE (scoped per user uid)
-// ════════════════════════════════════════════
-// Document layout: users/{uid}  →  { entries: [...], profile: {...}, bmiHistory: [...] }
+// ============================================
+// Document layout: users/{uid}  ->  { entries: [...], profile: {...}, bmiHistory: [...] }
 // Single document per user keeps reads/writes simple and within Firestore's free tier easily.
 
 function userDocRef() {
@@ -1117,11 +1142,11 @@ async function loadUserData() {
   } catch(err) {
     console.error('Error cargando datos de Firestore:', err);
     entries=[]; profile={}; bmiHistory=[];
-    toast('⚠ No se pudieron cargar tus datos. Revisa tu conexión.');
+    toast('[!] No se pudieron cargar tus datos. Revisa tu conexión.');
   }
 }
 
-// Debounced write queue — avoids hammering Firestore if multiple saves happen quickly
+// Debounced write queue - avoids hammering Firestore if multiple saves happen quickly
 let saveTimeout = null;
 async function persistAll() {
   const ref = userDocRef();
@@ -1133,7 +1158,7 @@ async function persistAll() {
         await setDoc(ref, { entries, profile, bmiHistory, updatedAt: Date.now() }, { merge: true });
       } catch(err) {
         console.error('Error guardando en Firestore:', err);
-        toast('⚠ No se pudo guardar en la nube');
+        toast('[!] No se pudo guardar en la nube');
       }
       resolve();
     }, 300);
@@ -1142,7 +1167,7 @@ async function persistAll() {
 
 
 //  NAV
-// ════════════════════════════════════════════
+// ============================================
 let activePage = 'record';
 
 function showPage(id, tab) {
@@ -1156,9 +1181,9 @@ function showPage(id, tab) {
   if(id==='profile')  { loadProfileForm(); }
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  CLOCK
-// ════════════════════════════════════════════
+// ============================================
 function tickClock() {
   const n = new Date();
   document.getElementById('navClock').textContent =
@@ -1166,9 +1191,9 @@ function tickClock() {
     ' · ' + n.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  SPEECH
-// ════════════════════════════════════════════
+// ============================================
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let micPermission = null; // 'granted' | 'denied' | null
 
@@ -1187,7 +1212,7 @@ async function requestMicPermission() {
 }
 
 function createRecognition() {
-  // Always create a fresh instance — mobile Chrome reuses stale state otherwise
+  // Always create a fresh instance - mobile Chrome reuses stale state otherwise
   if(!SR) return null;
   const r = new SR();
   r.lang = 'es-ES';
@@ -1226,7 +1251,7 @@ function createRecognition() {
   r.onend = () => {
     isRecording = false;
     setMicUI(false);
-    recognition = null; // always discard — create fresh next time
+    recognition = null; // always discard - create fresh next time
     if(currentTranscript) analyzeVoice(currentTranscript);
   };
 
@@ -1266,7 +1291,7 @@ async function toggleMic() {
   try {
     recognition.start();
   } catch(err) {
-    // InvalidStateError or similar — discard and report
+    // InvalidStateError or similar - discard and report
     recognition = null;
     isRecording = false;
     setMicUI(false);
@@ -1290,9 +1315,9 @@ function showTranscript(t) {
   else  { ph.style.display='inline'; tx.style.display='none'; }
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  AI ANALYSIS
-// ════════════════════════════════════════════
+// ============================================
 async function analyzeVoice(transcript) {
   const spin=document.getElementById('aiSpin');
   const box=document.getElementById('parsedBox');
@@ -1394,14 +1419,14 @@ function renderParsed(p) {
     if(e.series!=null)  parts.push(`${e.series}×${e.reps||'?'}`);
     const d=document.createElement('div');
     d.className='ptag';
-    d.textContent=parts.join(' · '); // textContent — safe from HTML injection
+    d.textContent=parts.join(' · '); // textContent - safe from HTML injection
     tags.appendChild(d);
   });
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  SAVE ENTRY
-// ════════════════════════════════════════════
+// ============================================
 function saveEntry() {
   if(!currentTranscript) return;
   const entry = {
@@ -1420,9 +1445,9 @@ function saveEntry() {
   document.getElementById('saveBtn').style.display='none';
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  LOG RENDER
-// ════════════════════════════════════════════
+// ============================================
 function renderLog() {
   const wrap=document.getElementById('logEntries');
   document.getElementById('logBadge').textContent=entries.length;
@@ -1452,16 +1477,16 @@ function delEntry(id) {
   renderLog(); updateStats();
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  STATS
-// ════════════════════════════════════════════
+// ============================================
 function updateStats() {
   document.getElementById('s-sessions').textContent = entries.length;
   const todayMidnight = startOfDay(Date.now());
   const today = entries.filter(e=>startOfDay(e.ts)===todayMidnight).length;
   document.getElementById('s-today').textContent = today;
 
-  // streak — use numeric day timestamps (midnight) so sorting/comparison is correct
+  // streak - use numeric day timestamps (midnight) so sorting/comparison is correct
   // regardless of locale string format (fixes "9/1/2026" vs "10/1/2026" lexicographic bug)
   const dayTimestamps = [...new Set(entries.map(e => startOfDay(e.ts)))].sort((a,b) => b-a);
   const ONE_DAY = 86400000;
@@ -1481,14 +1506,14 @@ function updateStats() {
   }
   document.getElementById('s-streak').textContent = streak;
 
-  // unique exercises — reuse getExerciseData's normalized keys so "Sentadilla" and
+  // unique exercises - reuse getExerciseData's normalized keys so "Sentadilla" and
   // "sentadilla" count as the same exercise (consistent with the Progress tab)
   document.getElementById('s-exercises').textContent = Object.keys(getExerciseData()).length;
 }
 
-// ════════════════════════════════════════════
-//  PROGRESS — EJERCICIOS
-// ════════════════════════════════════════════
+// ============================================
+//  PROGRESS - EJERCICIOS
+// ============================================
 function getExerciseData() {
   // collect all exercises with weights
   const map = {};
@@ -1613,9 +1638,9 @@ function refreshProgressStats() {
     pts = pts.filter(p => p.ts >= cutoff);
   }
   if(!pts.length) {
-    document.getElementById('ps-max').textContent='—';
-    document.getElementById('ps-first').textContent='—';
-    document.getElementById('ps-delta').textContent='—';
+    document.getElementById('ps-max').textContent='-';
+    document.getElementById('ps-first').textContent='-';
+    document.getElementById('ps-delta').textContent='-';
     document.getElementById('ps-sessions').textContent='0';
     return;
   }
@@ -1692,7 +1717,7 @@ function refreshAnalysis() {
     text.textContent=`Progresas en ${progressing.map(a=>a.name).join(', ')}, pero bajas en ${declining.map(a=>a.name).join(', ')}. Revisa la recuperación de los ejercicios en declive.`;
   } else if(stagnant.length>0){
     banner.style.background='rgba(250,204,21,0.07)'; banner.style.borderColor='rgba(250,204,21,0.3)';
-    icon.textContent='⚠️'; title.style.color='var(--yellow)'; title.textContent='Posible estancamiento';
+    icon.textContent='[!]'; title.style.color='var(--yellow)'; title.textContent='Posible estancamiento';
     text.textContent=`En ${stagnant.map(a=>a.name).join(', ')} los pesos se mantienen sin variación. Considera cambiar el volumen, el descanso o la nutrición.`;
   } else {
     banner.style.background='var(--card)'; banner.style.borderColor='var(--border)';
@@ -1701,9 +1726,9 @@ function refreshAnalysis() {
   }
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  BODY CHARTS
-// ════════════════════════════════════════════
+// ============================================
 function buildBodyCharts() {
   if(!bmiHistory.length) { clearBodyCharts(); renderBmiHistory(); return; }
   const sorted=[...bmiHistory].sort((a,b)=>a.ts-b.ts);
@@ -1792,9 +1817,9 @@ function renderBmiHistory() {
   }).join('');
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  PROFILE
-// ════════════════════════════════════════════
+// ============================================
 function loadProfileForm() {
   if(profile.name)   document.getElementById('pf-name').value=profile.name;
   if(profile.birth)  document.getElementById('pf-birth').value=profile.birth;
@@ -1809,16 +1834,16 @@ function saveProfile() {
   const w=parseFloat(document.getElementById('pf-weight').value);
   const h=parseFloat(document.getElementById('pf-height').value);
 
-  // Validate ranges before persisting — prevents NaN/Infinity IMC and nonsensical records
+  // Validate ranges before persisting - prevents NaN/Infinity IMC and nonsensical records
   const validWeight = isFinite(w) && w > 0 && w <= 400;
   const validHeight = isFinite(h) && h > 0 && h <= 280;
 
   if(document.getElementById('pf-weight').value && !validWeight) {
-    toast('⚠ Peso inválido (debe ser entre 1 y 400 kg)');
+    toast('[!] Peso inválido (debe ser entre 1 y 400 kg)');
     return;
   }
   if(document.getElementById('pf-height').value && !validHeight) {
-    toast('⚠ Talla inválida (debe ser entre 1 y 280 cm)');
+    toast('[!] Talla inválida (debe ser entre 1 y 280 cm)');
     return;
   }
 
@@ -1855,8 +1880,8 @@ function imcCategory(imc) {
 
 function refreshImcDisplay() {
   const w=profile.weight, h=profile.height;
-  document.getElementById('profileWeightDisplay').textContent=w||'—';
-  document.getElementById('profileHeightDisplay').textContent=h||'—';
+  document.getElementById('profileWeightDisplay').textContent=w||'-';
+  document.getElementById('profileHeightDisplay').textContent=h||'-';
   if(w&&h){
     const imc=calcIMC(w,h);
     const {color,label}=imcCategory(imc);
@@ -1864,7 +1889,7 @@ function refreshImcDisplay() {
     document.getElementById('imcValue').style.color=color;
     document.getElementById('imcCategory').textContent=label;
     document.getElementById('imcCategory').style.color=color;
-    // ring: map imc 15–40 to 0–100%
+    // ring: map imc 15-40 to 0-100%
     const pct=Math.min(100,Math.max(0,(imc-15)/25*100));
     const circ=314;
     const offset=circ-(pct/100*circ);
@@ -1873,9 +1898,9 @@ function refreshImcDisplay() {
   }
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  CHART OPTIONS (shared)
-// ════════════════════════════════════════════
+// ============================================
 function chartOptions(yUnit) {
   return {
     responsive:true, maintainAspectRatio:false,
@@ -1906,16 +1931,16 @@ function chartOptions(yUnit) {
   };
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  EXPORT
-// ════════════════════════════════════════════
+// ============================================
 function exportLog() {
   if(!entries.length){ toast('No hay registros para exportar'); return; }
   try {
-    let txt='═══ IRONLOG PRO — BITÁCORA ═══\n';
+    let txt='=== IRONLOG PRO - BITÁCORA ===\n';
     txt+=`Exportado: ${new Date().toLocaleString('es-ES')}\nTotal: ${entries.length} sesiones\n\n`;
     entries.forEach((e,i)=>{
-      txt+=`─── SESIÓN ${entries.length-i} ───\n`;
+      txt+=`--- SESIÓN ${entries.length-i} ---\n`;
       txt+=`Fecha: ${fmtDate(e.ts)}\nNota: ${e.transcript}\n`;
       (e.parsed?.ejercicios||[]).forEach(ej=>{
         txt+=`  • ${ej.nombre}`;
@@ -1926,7 +1951,7 @@ function exportLog() {
       txt+='\n';
     });
     if(bmiHistory.length){
-      txt+='═══ HISTORIAL CORPORAL ═══\n';
+      txt+='=== HISTORIAL CORPORAL ===\n';
       [...bmiHistory].sort((a,b)=>b.ts-a.ts).forEach(r=>{
         txt+=`${fmtDate(r.ts)} | Peso: ${r.weight}kg | Talla: ${r.height}cm | IMC: ${r.imc}\n`;
       });
@@ -1943,19 +1968,19 @@ function exportLog() {
     toast('📥 Bitácora exportada');
   } catch(err) {
     console.error('Error exportando:', err);
-    toast('⚠ Error al exportar la bitácora');
+    toast('[!] Error al exportar la bitácora');
   }
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  HELPERS
-// ════════════════════════════════════════════
+// ============================================
 function fmtDate(ts) {
   return new Date(ts).toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+
     ' · '+new Date(ts).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
 }
 
-// Returns the timestamp (ms) for midnight of the day containing ts — locale-independent,
+// Returns the timestamp (ms) for midnight of the day containing ts - locale-independent,
 // safe for numeric comparison/sorting (fixes streak calculation bugs).
 function startOfDay(ts) {
   const d = new Date(ts);
@@ -1969,9 +1994,9 @@ function toast(msg) {
   setTimeout(()=>t.classList.remove('show'),2600);
 }
 
-// ════════════════════════════════════════════
+// ============================================
 //  INIT
-// ════════════════════════════════════════════
+// ============================================
 document.getElementById('micBtn').addEventListener('click', () => toggleMic());
 document.getElementById('saveBtn').addEventListener('click', saveEntry);
 document.getElementById('exportBtn').addEventListener('click', exportLog);
@@ -1988,9 +2013,9 @@ tickClock(); setInterval(tickClock,1000);
 
 // Early check: warn if speech API not available
 if(!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-  setMicStatus('⚠ Voz no disponible. Usa Chrome o Edge.');
+  setMicStatus('[!] Voz no disponible. Usa Chrome o Edge.');
 } else if(location.protocol === 'file:') {
-  setMicStatus('⚠ Abre desde un servidor para activar el micrófono.');
+  setMicStatus('[!] Abre desde un servidor para activar el micrófono.');
 }
 </script>
 </body>
